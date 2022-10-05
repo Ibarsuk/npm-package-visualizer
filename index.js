@@ -18,13 +18,22 @@ if (!packageName) {
   const dependencyProcessor = new DependencyProcessor(packageName);
   const dependencies = await dependencyProcessor.getDependencies();
 
+  if (!Object.keys(dependencies).length) {
+    console.info(chalk.blue(`Package does not have any dependencies`));
+    process.exit(0);
+  }
+
   const graphBuilder = new GraphBuilder(dependencies);
   const graph = graphBuilder.getGraph();
 
   if (file) {
-    await fs.writeFile(file, graph);
-    console.info(chalk.green(`Graph saved to ${file}`));
-    process.exit(0);
+    try {
+      await fs.writeFile(file, graph);
+      console.info(chalk.green(`Graph saved to ${file}`));
+    } catch (e) {
+      console.error(chalk.red(`Haven't managed to save graph to file: ${e.message}`));
+      console.info(chalk.blue(graph));
+    }
   } else {
     console.info(chalk.blue(graph));
   }
