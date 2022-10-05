@@ -10,7 +10,7 @@ class GraphBuilder {
       .map((dependency) => `"${dependency}"`)
       .join(" ");
     const packageName = entry[0];
-    return `{${dependencies}} -> "${packageName}";`;
+    return `"${packageName}" -> {${dependencies}};`;
   }
 
   getGraph() {

@@ -24,7 +24,7 @@ class DependencyProcessor {
 
   _handleProcessingError(e, packageName) {
     if (e instanceof AxiosError) {
-      if (e.response.status === 404) {
+      if (e.response?.status === 404) {
         console.warn(chalk.yellow(`Package ${packageName} not fonud!`));
       } else {
         console.warn(
