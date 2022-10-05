@@ -7,7 +7,7 @@ const api = require("./api");
 class DependencyProcessor {
   constructor(packageName) {
     this._packageName = packageName;
-    this._packagesStack = [];
+    this._packages = [];
     this._dependencies = {};
   }
 
@@ -33,12 +33,12 @@ class DependencyProcessor {
       if (!packageDependencies) return;
 
       this._dependencies[packageName] = packageDependencies;
-      this._packagesStack.push(...packageDependencies);
+      this._packages.push(...packageDependencies);
     } catch (e) {
       if (e instanceof AxiosError) {
         console.warn(
           chalk.yellow(
-            `Haven't managed to access '${packageName}' package with status ${res.status}. Graph is not full!`
+            `Haven't managed to access '${packageName}' package with status ${e.code}. Graph is not full!`
           )
         );
       } else {
@@ -47,11 +47,20 @@ class DependencyProcessor {
     }
   }
 
-  async getDependencies() {
-    this._packagesStack.push(this._packageName);
+  _getDependencyPromises() {
+    const promises = this._packages.map((packageName) =>
+      this._processPackage(packageName)
+    );
+    this._packages = [];
 
-    while (this._packagesStack.length) {
-      await this._processPackage(this._packagesStack.pop());
+    return promises;
+  }
+
+  async getDependencies() {
+    this._packages.push(this._packageName);
+
+    while (this._packages.length) {
+      await Promise.all(this._getDependencyPromises());
     }
 
     return this._dependencies;
