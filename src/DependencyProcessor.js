@@ -22,6 +22,22 @@ class DependencyProcessor {
       : null;
   }
 
+  _handleProcessingError(e, packageName) {
+    if (e instanceof AxiosError) {
+      if (e.response.status === 404) {
+        console.warn(chalk.yellow(`Package ${packageName} not fonud!`));
+      } else {
+        console.warn(
+          chalk.yellow(
+            `Haven't managed to access '${packageName}' package with status ${e.code}. Graph is not full!`
+          )
+        );
+      }
+    } else {
+      console.error(chalk.red(e));
+    }
+  }
+
   async _processPackage(packageName) {
     console.info(chalk.gray(`processing ${packageName}`));
     if (this._dependencies[packageName]) return;
@@ -35,15 +51,7 @@ class DependencyProcessor {
       this._dependencies[packageName] = packageDependencies;
       this._packages.push(...packageDependencies);
     } catch (e) {
-      if (e instanceof AxiosError) {
-        console.warn(
-          chalk.yellow(
-            `Haven't managed to access '${packageName}' package with status ${e.code}. Graph is not full!`
-          )
-        );
-      } else {
-        console.error(chalk.red(e));
-      }
+      this._handleProcessingError(e, packageName);
     }
   }
 
